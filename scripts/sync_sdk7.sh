@@ -3,12 +3,11 @@ set -e
 
 REPO_DEST="drkrillo/dcl-sdk7-docs"
 SOURCE_REPO="https://github.com/decentraland/documentation.git"
-SUBFOLDER="content/creators/sdk7"
+SUBFOLDER="content/creator/sdk7"
 TARGET_BRANCH="main"
 
 echo "▶ Cloning source repo..."
 git clone --no-single-branch --depth=1 "$SOURCE_REPO" source-repo
-ls -R source-repo/content/creators
 cd source-repo
 
 echo "▶ Creating subtree branch for $SUBFOLDER"
