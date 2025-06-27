@@ -7,7 +7,8 @@ SUBFOLDER="content/creators/sdk7"
 TARGET_BRANCH="main"
 
 echo "▶ Cloning source repo..."
-git clone "$SOURCE_REPO" source-repo
+git clone --no-single-branch --depth=1 "$SOURCE_REPO" source-repo
+ls -R source-repo/content/creators
 cd source-repo
 
 echo "▶ Creating subtree branch for $SUBFOLDER"
@@ -19,3 +20,4 @@ git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
 git remote add target https://x-access-token:${PERSONAL_TOKEN}@github.com/$REPO_DEST.git
 git push target sdk7-only:$TARGET_BRANCH --force
+
