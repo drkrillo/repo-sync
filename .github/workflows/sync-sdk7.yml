@@ -1,0 +1,19 @@
+name: Sync SDK7 Docs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+jobs:
+  sync-sdk7:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout sync-runner repo
+      uses: actions/checkout@v4
+
+    - name: Run sync script
+      run: bash scripts/sync_sdk7.sh
+      env:
+        PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
