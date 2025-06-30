@@ -20,7 +20,7 @@ jobs:
 
       - name: Clone sdk7-docs
         run: |
-          git clone --depth 1 https://github.com/drkrillo /dcl-sdk7-docs.git sdk7-docs
+          git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git sdk7-docs
 
       - name: Clone sdk7-scene-template
         run: |
