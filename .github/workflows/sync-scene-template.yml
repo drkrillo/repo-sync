@@ -1,12 +1,12 @@
 name: Update DCL AI Context
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:        # Ejecutar manualmente
   schedule:
-    - cron: "0 4 * * 1"  # Cada día a las 4:00 UTC
+    - cron: "0 4 * * 1"     # Todos los lunes a las 4:00 UTC
   push:
     branches:
-      - main 
+      - main                # Cuando hay push o merge a main
 
 jobs:
   sync-repos:
@@ -26,25 +26,36 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git scene-template
 
-      - name: Clone dcl-ai-context(will combine)
+      - name: Clone dcl-ai-context (will combine)
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
-          cd combined
-          git checkout main
 
-      - name: Clean target
+          if [ ! -d combined/.git ]; then
+            echo "❌ Error: 'combined' no es un repositorio válido. Abortando."
+            exit 1
+          fi
+
+          cd combined
+
+          if git rev-parse --verify main > /dev/null 2>&1; then
+            git checkout main
+          else
+            git checkout -b main
+          fi
+
+      - name: Clean target folder
         run: |
           rm -rf combined/*
           rm -rf combined/.* 2>/dev/null || true
-          touch combined/.gitignore  # If not Git complains
+          touch combined/.gitignore  # Para evitar errores con git
 
-      - name: Copy sdk7-docs
+      - name: Copy sdk7-docs into combined
         run: |
           cp -r sdk7-docs/* combined/
 
-      - name: Copy scene-template
+      - name: Copy scene-template into combined
         run: |
           cp -r scene-template/* combined/
 
@@ -52,9 +63,11 @@ jobs:
         run: |
           cd combined
           git add .
-          if ! git diff --cached --quiet; then
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit."
+          else
+            echo "✅ Committing changes..."
             git commit -m "Auto: Combined update of sdk7-docs and scene-template"
             git push origin main
-          else
-            echo "No changes to commit."
           fi
