@@ -1,12 +1,12 @@
 name: Update DCL AI Context
 
 on:
-  workflow_dispatch:        # Ejecutar manualmente
+  workflow_dispatch:
   schedule:
-    - cron: "0 4 * * 1"     # Todos los lunes a las 4:00 UTC
+    - cron: "0 4 * * 1"
   push:
     branches:
-      - main                # Cuando hay push o merge a main
+      - main
 
 jobs:
   sync-repos:
@@ -30,16 +30,17 @@ jobs:
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
+          echo "Cloning dcl-ai-context..."
           git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
 
-          if [ ! -d combined/.git ]; then
-            echo "❌ Error: 'combined' no es un repositorio válido. Abortando."
+          if [ ! -d "combined/.git" ]; then
+            echo "❌ Error: combined/.git no existe. Probablemente falló el git clone."
             exit 1
           fi
 
           cd combined
 
-          if git rev-parse --verify main > /dev/null 2>&1; then
+          if git rev-parse --verify main >/dev/null 2>&1; then
             git checkout main
           else
             git checkout -b main
@@ -49,13 +50,13 @@ jobs:
         run: |
           rm -rf combined/*
           rm -rf combined/.* 2>/dev/null || true
-          touch combined/.gitignore  # Para evitar errores con git
+          touch combined/.gitignore
 
-      - name: Copy sdk7-docs into combined
+      - name: Copy sdk7-docs
         run: |
           cp -r sdk7-docs/* combined/
 
-      - name: Copy scene-template into combined
+      - name: Copy scene-template
         run: |
           cp -r scene-template/* combined/
 
@@ -63,11 +64,10 @@ jobs:
         run: |
           cd combined
           git add .
-
           if git diff --cached --quiet; then
             echo "✅ No changes to commit."
           else
-            echo "✅ Committing changes..."
+            echo "📦 Changes found. Committing..."
             git commit -m "Auto: Combined update of sdk7-docs and scene-template"
             git push origin main
           fi
