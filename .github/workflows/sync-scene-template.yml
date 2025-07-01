@@ -36,8 +36,8 @@ jobs:
 
       - name: Copy docs and scene template into dcl-ai-context
         run: |
-          cp -r temp-docs/* temp-ai-context/
-          cp -r temp-scene/* temp-ai-context/
+          mkdir -p temp-ai-context/context/sdk7-docs
+          cp -r temp-docs/* temp-ai-context/context/sdk7-docs/
 
       - name: Commit and push changes to dcl-ai-context
         working-directory: temp-ai-context
