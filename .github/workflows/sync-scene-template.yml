@@ -47,13 +47,13 @@ jobs:
         run: |
           find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
 
-      - name: Copy sdk7-docs into combined using rsync
+      - name: Copy sdk7-docs into combined using rsync (no delete!)
         run: |
-          rsync -av --delete --exclude='.git' sdk7-docs/ combined/
+          rsync -av --exclude='.git' sdk7-docs/ combined/
 
-      - name: Copy scene-template into combined using rsync
+      - name: Copy scene-template into combined using rsync (no delete!)
         run: |
-          rsync -av --delete --exclude='.git' scene-template/ combined/
+          rsync -av --exclude='.git' scene-template/ combined/
 
       - name: Commit and push if changes exist
         run: |
