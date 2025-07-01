@@ -29,8 +29,9 @@ jobs:
 
       - name: Clean dcl-ai-context folder (except .git)
         run: |
-          rm -rf temp-ai-context/*
-          # si hay archivos ocultos además de .git, se podrían borrar con:
+          rm -rf temp-ai-context/context/sdk7-docs # Delete only sync folders
+          rm -rf temp-ai-context/scene-template # Delete only sync folders
+          # If other hidden folders, could be deleted with:
           # shopt -s extglob
           # rm -rf temp-ai-context/!(.git)
 
