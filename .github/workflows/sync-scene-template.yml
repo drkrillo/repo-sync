@@ -1,9 +1,9 @@
-name: Sync SDK7 Docs and Scene Template
+name: 🔄 Sync Docs and Template
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 3 * * *'  # Cada día a las 3 AM UTC
   pull_request:
     branches:
       - main 
@@ -12,44 +12,41 @@ jobs:
   sync:
     runs-on: ubuntu-latest
 
-    env:
-      PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
-
     steps:
-      - name: Checkout current repo
+      - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          ref: main
+          fetch-depth: 0  # Necesario si querés hacer push
 
-      - name: Set Git config
+      - name: Set git identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Clean combined directory
-        run: |
-          rm -rf combined
-          mkdir -p combined/sdk7-docs
-          mkdir -p combined/scene-template
+      - name: Clean previous sync
+        run: rm -rf combined
 
-      - name: Clone sdk7-docs
+      - name: Clone SDK7 Docs
         run: git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git temp-docs
 
-      - name: Clone scene-template
+      - name: Clone Scene Template
         run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git temp-scene
 
-      - name: Copy contents into combined/
+      - name: Sync sdk7-docs
         run: |
+          mkdir -p combined/sdk7-docs
           rsync -av --exclude='.git' temp-docs/ combined/sdk7-docs/
-          rsync -av --exclude='.git' temp-scene/ combined/scene-template/
-          rm -rf temp-docs temp-scene
 
-      - name: Commit and push changes
+      - name: Sync scene-template
+        run: |
+          mkdir -p combined/scene-template
+          rsync -av --exclude='.git' temp-scene/ combined/scene-template/
+
+      - name: Commit changes
         run: |
           git add combined
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit."
-          else
-            git commit -m "🔄 Sync sdk7-docs and scene-template into combined/"
-            git push
-          fi
+          git commit -m "🔄 Sync sdk7-docs and scene-template into combined/" || echo "No changes to commit"
+
+      - name: Push to main
+        run: git push origin main
