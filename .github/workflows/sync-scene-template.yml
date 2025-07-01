@@ -31,7 +31,6 @@ jobs:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           echo "🔄 Cloning 'dcl-ai-context' into ./combined..."
-          set -x
           GIT_URL="https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git"
           git clone "$GIT_URL" combined
 
@@ -44,20 +43,17 @@ jobs:
             git checkout -b main
           fi
 
-      - name: Prepare working directory without removing .git
+      - name: Clean combined directory except .git
         run: |
-          # Create a temp dir to store incoming files
-          mkdir temp_merge
-
-          # Copy both repos into temp_merge
-          cp -r sdk7-docs/* temp_merge/
-          cp -r scene-template/* temp_merge/
-
-          # Clean combined/, excluding .git
           find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
 
-          # Move files from temp_merge to combined
-          cp -r temp_merge/* combined/
+      - name: Copy sdk7-docs into combined using rsync
+        run: |
+          rsync -av --delete --exclude='.git' sdk7-docs/ combined/
+
+      - name: Copy scene-template into combined using rsync
+        run: |
+          rsync -av --delete --exclude='.git' scene-template/ combined/
 
       - name: Commit and push if changes exist
         run: |
