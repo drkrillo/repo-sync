@@ -1,52 +1,54 @@
-name: 🔄 Sync Docs and Template
+name: Sync
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'  # Cada día a las 3 AM UTC
-  pull_request:
-    branches:
-      - main 
+    - cron: '0 0 * * *'  # se puede ajustar para correr diario a medianoche
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main branch
+      - name: Checkout repo-sync repo
         uses: actions/checkout@v4
         with:
-          ref: main
-          fetch-depth: 0  # Necesario si querés hacer push
+          fetch-depth: 0
 
-      - name: Set git identity
+      - name: Set git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Clean previous sync
+      - name: Clean combined folder
         run: rm -rf combined
 
-      - name: Clone SDK7 Docs
+      - name: Clone dcl-sdk7-docs
         run: git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git temp-docs
 
-      - name: Clone Scene Template
+      - name: Clone sdk7-scene-template
         run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git temp-scene
 
-      - name: Sync sdk7-docs
+      - name: Clone dcl-ai-context
+        run: git clone --depth 1 https://github.com/drkrillo/dcl-ai-context.git temp-ai-context
+
+      - name: Sync dcl-sdk7-docs
         run: |
           mkdir -p combined/sdk7-docs
           rsync -av --exclude='.git' temp-docs/ combined/sdk7-docs/
 
-      - name: Sync scene-template
+      - name: Sync sdk7-scene-template
         run: |
           mkdir -p combined/scene-template
           rsync -av --exclude='.git' temp-scene/ combined/scene-template/
 
-      - name: Commit changes
+      - name: Sync dcl-ai-context
+        run: |
+          mkdir -p combined/dcl-ai-context
+          rsync -av --exclude='.git' temp-ai-context/ combined/dcl-ai-context/
+
+      - name: Commit and push changes
         run: |
           git add combined
-          git commit -m "🔄 Sync sdk7-docs and scene-template into combined/" || echo "No changes to commit"
-
-      - name: Push to main
-        run: git push origin main
+          git diff --cached --quiet || git commit -m "🔄 Sync repos into combined/"
+          git push origin main
