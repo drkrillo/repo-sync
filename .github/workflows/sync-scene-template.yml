@@ -1,12 +1,12 @@
 name: Update DCL AI Context
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
   schedule:
-    - cron: "0 4 * * 1"
+    - cron: "0 4 * * 1"  # Every Monday at 04:00 UTC
   push:
     branches:
-      - main
+      - main  # Trigger on push to main
 
 jobs:
   sync-repos:
@@ -30,15 +30,17 @@ jobs:
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
+          # Clone the destination repo into ./combined using personal token for auth
           git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
 
       - name: Checkout main branch of dcl-ai-context
         run: |
-          cd combined
-          git checkout main || git checkout -b main
+          # Checkout main branch, create if it doesn't exist
+          git -C combined checkout main || git -C combined checkout -b main
 
       - name: Clean combined directory except .git
         run: |
+          # Delete all files/folders except .git inside combined
           find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
 
       - name: Debug contents of combined AFTER cleaning
@@ -46,13 +48,17 @@ jobs:
           ls -la combined
           echo "Does combined/.git exist?"
           if [ -d combined/.git ]; then echo "YES"; else echo "NO"; fi
+          file combined/.git
+          ls -la combined/.git
 
       - name: Copy sdk7-docs into combined (no --delete)
         run: |
+          # Sync sdk7-docs files into combined, excluding .git folder
           rsync -av --exclude='.git' sdk7-docs/ combined/
 
       - name: Copy scene-template into combined (no --delete)
         run: |
+          # Sync scene-template files into combined, excluding .git folder
           rsync -av --exclude='.git' scene-template/ combined/
 
       - name: Debug contents of combined BEFORE git commit
@@ -63,14 +69,17 @@ jobs:
 
       - name: Commit and push if changes exist
         run: |
-          cd combined
-          git status
-          git add .
+          echo "Current directory: $(pwd)"
+          # Show git status inside combined
+          git -C combined status
+          # Stage changes inside combined
+          git -C combined add .
 
-          if git diff --cached --quiet; then
+          # Check if there are staged changes
+          if git -C combined diff --cached --quiet; then
             echo "✅ No changes to commit."
           else
-            echo "📦 Changes found. Committing..."
-            git commit -m "Auto: Combined update of sdk7-docs and scene-template"
-            git push origin main
+            echo "📦 Changes found. Committing and pushing..."
+            git -C combined commit -m "Auto: Combined update of sdk7-docs and scene-template"
+            git -C combined push origin main
           fi
