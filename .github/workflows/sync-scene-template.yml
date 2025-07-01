@@ -1,4 +1,26 @@
-      # Clone sdk7-docs (source 1)
+name: Sync SDK7 Docs and Scene Template
+
+on:
+  workflow_dispatch: # Trigger manual
+  schedule:
+    - cron: "0 4 * * 1" # Every Monday at 4am UTC
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-repos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Clone sdk7-docs
         run: |
           git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git sdk7-docs
@@ -7,7 +29,6 @@
           echo "🧱 Tree of sdk7-docs:"
           find sdk7-docs
 
-      # Clone scene-template (source 2)
       - name: Clone scene-template
         run: |
           git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git scene-template
@@ -16,52 +37,52 @@
           echo "🧱 Tree of scene-template:"
           find scene-template
 
-      # Clone the destination repo where the final content will be pushed
       - name: Clone destination repo with access token
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
-          echo "📁 Contents of combined (initial clone):"
+          echo "📁 Contents of combined (initial):"
           ls -la combined
           echo "🧱 Tree of combined:"
           find combined
 
-      # Clean all files in combined except the .git folder
-      - name: Clean combined repo contents
+      - name: Ensure main branch exists
+        run: git -C combined checkout main || git -C combined checkout -b main
+
+      - name: Clean combined repo contents (preserving .git)
         run: |
           find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
           echo "🧹 Cleaned combined repo:"
           ls -la combined
 
-      # Copy sdk7-docs contents to combined (excluding .git)
       - name: Copy sdk7-docs to combined
         run: |
           rsync -av --exclude='.git' sdk7-docs/ combined/
           echo "📂 Combined after copying sdk7-docs:"
           ls -la combined
 
-      # Copy scene-template contents to combined (excluding .git)
       - name: Copy scene-template to combined
         run: |
           rsync -av --exclude='.git' scene-template/ combined/
           echo "📂 Combined after copying scene-template:"
           ls -la combined
 
-      # Commit and push only if changes exist
       - name: Commit and push if changes
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           echo "📂 Final tree of combined before commit:"
           find combined
-          git -C combined status
-          git -C combined add .
+          
+          cd combined
+          git status
+          git add .
 
-          if git -C combined diff --cached --quiet; then
+          if git diff --cached --quiet; then
             echo "✅ No changes to commit."
           else
             echo "📦 Changes found. Committing and pushing..."
-            git -C combined commit -m "Auto: Combined update of sdk7-docs and scene-template"
-            git -C combined push origin main
+            git commit -m "Auto: Combined update of sdk7-docs and scene-template"
+            git push origin main
           fi
