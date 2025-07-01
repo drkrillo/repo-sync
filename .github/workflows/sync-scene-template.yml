@@ -1,92 +1,48 @@
-name: Sync SDK7 Docs and Scene Template
+name: Sync SDK7 Docs and Template
 
 on:
-  workflow_dispatch: # Permite ejecución manual
-  schedule:
-    - cron: "0 4 * * 1" # Cada lunes a las 4:00 UTC
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  sync-repos:
+  sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout current repo (optional)
+      - name: Checkout current repo
         uses: actions/checkout@v4
 
-      - name: Configure Git
+      - name: Set up Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 🧹 Limpiar 'combined' si ya existe
-      - name: Clean combined directory if it exists
+      - name: Clean old combined directory
         run: rm -rf combined
 
-      # 📦 Clonar sdk7-docs
-      - name: Clone sdk7-docs
-        run: |
-          git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git sdk7-docs
-          echo "📁 Contents of sdk7-docs:"
-          ls -la sdk7-docs
-          echo "🧱 Tree of sdk7-docs:"
-          find sdk7-docs
+      - name: Clone SDK7 docs
+        run: git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git sdk7-docs
 
-      # 📦 Clonar scene-template
-      - name: Clone scene-template
-        run: |
-          git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git scene-template
-          echo "📁 Contents of scene-template:"
-          ls -la scene-template
-          echo "🧱 Tree of scene-template:"
-          find scene-template
+      - name: Clone SDK7 scene template
+        run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git scene-template
 
-      # 📦 Clonar dcl-ai-context en carpeta 'combined'
-      - name: Clone destination repo with access token
-        env:
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
-        run: |
-          git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
-          echo "📁 Contents of combined (initial):"
-          ls -la combined
-          echo "🧱 Tree of combined:"
-          find combined
+      - name: Clone target repo
+        run: git clone https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/drkrillo/dcl-ai-context.git combined
 
-      # 🧹 Limpiar contenido anterior del repo (menos .git)
-      - name: Clean combined repo contents
+      - name: Clean combined contents (except .git)
         run: find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
 
-      # 📂 Copiar sdk7-docs al destino
-      - name: Copy sdk7-docs to combined
-        run: rsync -av --exclude='.git' sdk7-docs/ combined/
+      - name: Copy sdk7-docs into combined
+        run: |
+          mkdir -p combined/sdk7-docs
+          rsync -av --exclude='.git' sdk7-docs/ combined/sdk7-docs/
 
-      # 📂 Copiar scene-template al destino
-      - name: Copy scene-template to combined
+
+      - name: Copy scene-template into combined
         run: rsync -av --exclude='.git' scene-template/ combined/
 
-      # ✅ Mostrar estado antes de pushear
-      - name: Show status and tree of combined
-        run: |
-          echo "📁 Combined dir after merge:"
-          ls -la combined
-          echo "🧱 Tree of combined after merge:"
-          find combined
-
-      # 📤 Comitear si hay cambios
-      - name: Commit and push if changes
-        env:
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+      - name: Commit and Push changes
         run: |
           cd combined
-          git status
           git add .
-
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit."
-          else
-            echo "📦 Changes found. Committing and pushing..."
-            git commit -m "Auto: Combined update of sdk7-docs and scene-template"
-            git push https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git main
-          fi
+          git diff-index --quiet HEAD || git commit -m "Sync SDK7 docs and template"
+          git push origin main
