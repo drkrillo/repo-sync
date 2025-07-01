@@ -25,7 +25,7 @@ jobs:
         run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git temp-scene
 
       - name: Clone dcl-ai-context
-        run: git clone https://github.com/drkrillo/dcl-ai-context.git temp-ai-context
+        run: git clone https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/drkrillo/dcl-ai-context.git temp-ai-context
 
       - name: Clean dcl-ai-context folder (except .git)
         run: |
