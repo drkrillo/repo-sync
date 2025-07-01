@@ -3,29 +3,20 @@ name: Sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # correr diario a medianoche
+    - cron: '0 0 * * *'  # diario a medianoche
   pull_request:
     branches:
-      - main 
+      - main
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo-sync repo
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
       - name: Set git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Clean combined folder
-        run: rm -rf combined
 
       - name: Clone dcl-sdk7-docs
         run: git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git temp-docs
@@ -34,25 +25,23 @@ jobs:
         run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git temp-scene
 
       - name: Clone dcl-ai-context
-        run: git clone --depth 1 https://github.com/drkrillo/dcl-ai-context.git temp-ai-context
+        run: git clone https://github.com/drkrillo/dcl-ai-context.git temp-ai-context
 
-      - name: Sync dcl-sdk7-docs
+      - name: Clean dcl-ai-context folder (except .git)
         run: |
-          mkdir -p combined/sdk7-docs
-          rsync -av --exclude='.git' temp-docs/ combined/sdk7-docs/
+          rm -rf temp-ai-context/*
+          # si hay archivos ocultos además de .git, se podrían borrar con:
+          # shopt -s extglob
+          # rm -rf temp-ai-context/!(.git)
 
-      - name: Sync sdk7-scene-template
+      - name: Copy docs and scene template into dcl-ai-context
         run: |
-          mkdir -p combined/scene-template
-          rsync -av --exclude='.git' temp-scene/ combined/scene-template/
+          cp -r temp-docs/* temp-ai-context/
+          cp -r temp-scene/* temp-ai-context/
 
-      - name: Sync dcl-ai-context
+      - name: Commit and push changes to dcl-ai-context
+        working-directory: temp-ai-context
         run: |
-          mkdir -p combined/dcl-ai-context
-          rsync -av --exclude='.git' temp-ai-context/ combined/dcl-ai-context/
-
-      - name: Commit and push changes
-        run: |
-          git add combined
-          git diff --cached --quiet || git commit -m "🔄 Sync repos into combined/"
+          git add .
+          git diff --cached --quiet || git commit -m "🔄 Sync docs and scene template into dcl-ai-context"
           git push origin main
