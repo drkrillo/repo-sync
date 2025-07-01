@@ -3,7 +3,7 @@ name: Update DCL AI Context
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 * * 1"   # Corre los lunes a las 4:00 UTC
+    - cron: "0 4 * * 1"
   push:
     branches:
       - main
@@ -31,21 +31,23 @@ jobs:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           echo "🔄 Cloning dcl-ai-context into ./combined..."
-          
-          git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
 
-          echo "📁 Listando archivos de 'combined':"
-          ls -la combined || true
+          git clone "https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git" combined
+          CLONE_STATUS=$?
 
-          if [ ! -f "combined/.git/config" ]; then
-            echo "❌ FATAL: El clon de 'dcl-ai-context' falló. No se encontró .git/config."
-            echo "Contenido actual de combined/:"
+          if [ $CLONE_STATUS -ne 0 ]; then
+            echo "❌ FATAL: git clone falló con código $CLONE_STATUS"
+            exit 1
+          fi
+
+          if [ ! -d "combined/.git" ]; then
+            echo "❌ FATAL: El clon de 'dcl-ai-context' falló. combined/.git no existe."
             ls -la combined || true
             exit 1
           fi
 
-          echo "✅ Clone OK. Entrando a la carpeta y chequeando rama..."
-
+      - name: Checkout main branch of dcl-ai-context
+        run: |
           cd combined
 
           if git show-ref --verify --quiet refs/heads/main; then
@@ -54,11 +56,6 @@ jobs:
             echo "⚠️ No existe la rama 'main'. Creándola..."
             git checkout -b main
           fi
-
-      - name: Debug contents of combined
-        run: |
-          echo "📁 Contenido de ./combined después del clone:"
-          ls -la combined || echo "❗️ 'combined' no existe"
 
       - name: Clean target folder
         run: |
