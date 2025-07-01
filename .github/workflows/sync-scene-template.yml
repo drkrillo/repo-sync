@@ -38,6 +38,7 @@ jobs:
         run: |
           mkdir -p temp-ai-context/context/sdk7-docs
           cp -r temp-docs/* temp-ai-context/context/sdk7-docs/
+          cp -r temp-scene/* temp-ai-context/
 
       - name: Commit and push changes to dcl-ai-context
         working-directory: temp-ai-context
