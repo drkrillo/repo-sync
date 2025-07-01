@@ -30,34 +30,41 @@ jobs:
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
-          echo "🔄 Cloning 'dcl-ai-context' into ./combined..."
-          GIT_URL="https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git"
-          git clone "$GIT_URL" combined
+          git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
 
       - name: Checkout main branch of dcl-ai-context
         run: |
           cd combined
-          if git rev-parse --verify main >/dev/null 2>&1; then
-            git checkout main
-          else
-            git checkout -b main
-          fi
+          git checkout main || git checkout -b main
 
       - name: Clean combined directory except .git
         run: |
           find combined -mindepth 1 -not -name '.git' -exec rm -rf {} +
 
-      - name: Copy sdk7-docs into combined using rsync (no delete!)
+      - name: Debug contents of combined AFTER cleaning
+        run: |
+          ls -la combined
+          echo "Does combined/.git exist?"
+          if [ -d combined/.git ]; then echo "YES"; else echo "NO"; fi
+
+      - name: Copy sdk7-docs into combined (no --delete)
         run: |
           rsync -av --exclude='.git' sdk7-docs/ combined/
 
-      - name: Copy scene-template into combined using rsync (no delete!)
+      - name: Copy scene-template into combined (no --delete)
         run: |
           rsync -av --exclude='.git' scene-template/ combined/
+
+      - name: Debug contents of combined BEFORE git commit
+        run: |
+          ls -la combined
+          echo "Does combined/.git exist?"
+          if [ -d combined/.git ]; then echo "YES"; else echo "NO"; fi
 
       - name: Commit and push if changes exist
         run: |
           cd combined
+          git status
           git add .
 
           if git diff --cached --quiet; then
