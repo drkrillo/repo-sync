@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # se puede ajustar para correr diario a medianoche
+  pull_request:
+    branches:
+      - main 
 
 jobs:
   sync:
