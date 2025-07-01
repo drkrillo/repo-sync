@@ -2,6 +2,11 @@ name: Sync SDK7 Docs and Scene Template
 
 on:
   workflow_dispatch: # Allows manual trigger
+  schedule:
+    - cron: "0 4 * * 1"
+  push:
+    branches:
+      - main
 
 jobs:
   sync-repos:
