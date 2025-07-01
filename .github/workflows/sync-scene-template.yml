@@ -31,26 +31,27 @@ jobs:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           echo "🔄 Cloning dcl-ai-context into ./combined..."
-          set -e
+          
+          git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined
 
-          git clone https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git combined || {
-            echo "❌ FATAL: git clone falló. Revisá que el PERSONAL_TOKEN sea válido y tenga permisos."
-            exit 1
-          }
+          echo "📁 Listando archivos de 'combined':"
+          ls -la combined || true
 
-          if [ ! -d "combined/.git" ]; then
-            echo "❌ FATAL: El directorio 'combined/.git' no existe. No es un repo válido."
-            echo "Contenido de combined:"
-            ls -la combined || echo "(No existe el directorio combined)"
+          if [ ! -f "combined/.git/config" ]; then
+            echo "❌ FATAL: El clon de 'dcl-ai-context' falló. No se encontró .git/config."
+            echo "Contenido actual de combined/:"
+            ls -la combined || true
             exit 1
           fi
 
+          echo "✅ Clone OK. Entrando a la carpeta y chequeando rama..."
+
           cd combined
 
-          if git rev-parse --verify main >/dev/null 2>&1; then
+          if git show-ref --verify --quiet refs/heads/main; then
             git checkout main
           else
-            echo "⚠️ Rama main no existe, creando rama main"
+            echo "⚠️ No existe la rama 'main'. Creándola..."
             git checkout -b main
           fi
 
