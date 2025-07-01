@@ -26,30 +26,29 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git scene-template
 
-      - name: Clone dcl-ai-context (will combine)
+      - name: Clone dcl-ai-context (debugging enabled)
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
-          echo "🔄 Cloning dcl-ai-context into ./combined..."
-
-          git clone "https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git" combined
-          CLONE_STATUS=$?
-
-          if [ $CLONE_STATUS -ne 0 ]; then
-            echo "❌ FATAL: git clone falló con código $CLONE_STATUS"
+          echo "🔄 Trying to clone 'dcl-ai-context' into ./combined..."
+          set -x  # Habilita verbose
+          GIT_URL="https://x-access-token:${PERSONAL_TOKEN}@github.com/drkrillo/dcl-ai-context.git"
+          git clone "$GIT_URL" combined 2>&1 || {
+            echo "❌ FATAL: git clone falló. Revisá que el token tenga permisos y que el repo exista."
             exit 1
-          fi
+          }
+
+          echo "📁 Mostrando contenido de combined/"
+          ls -la combined || echo "❗ combined/ no existe"
 
           if [ ! -d "combined/.git" ]; then
-            echo "❌ FATAL: El clon de 'dcl-ai-context' falló. combined/.git no existe."
-            ls -la combined || true
+            echo "❌ FATAL: combined/.git no encontrado. El repo no se clonó correctamente."
             exit 1
           fi
 
       - name: Checkout main branch of dcl-ai-context
         run: |
           cd combined
-
           if git show-ref --verify --quiet refs/heads/main; then
             git checkout main
           else
