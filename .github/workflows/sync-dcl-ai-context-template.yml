@@ -1,0 +1,76 @@
+name: Sync to target‑repo
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'  # Monday midnight run
+  pull_request:
+    branches:
+      - main
+env:
+  # adjust paths & branch names as needed
+  TARGET_REPO: drkrillo/dcl-ai-context
+  TARGET_BRANCH: main
+  REPO2: decentraland/sdk7-scene-template
+  REPO2_BRANCH: main
+  REPO3: drkrillo/dcl-sdk7-docs
+  REPO3_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      # needed by actions/checkout to push
+      contents: write
+
+    steps:
+      # 1) Check out dcl-ai-context under "target/"
+      - name: Checkout dcl-ai-context
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.TARGET_REPO }}
+          ref: ${{ env.TARGET_BRANCH }}
+          token: ${{ secrets.TARGET_REPO_PAT }}
+          path: target
+
+      # 2) Check out repo2 under "repo2/"
+      - name: Checkout sdk7-scene-template
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO2 }}
+          ref: ${{ env.REPO2_BRANCH }}
+          path: repo2
+
+      # 3) Check out repo3 under "repo3/"
+      - name: Checkout dcl-sdk7-docs
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO3 }}
+          ref: ${{ env.REPO3_BRANCH }}
+          path: repo3
+
+      # 4) Sync repo2 → target root (leave target’s README.md alone)
+      - name: Sync sdk7-scene-template into dcl-ai-context root
+        run: |
+          rsync -av --delete \
+            --exclude='.git*' \
+            --exclude='README.md' \
+            repo2/ target/
+
+      # 5) Sync repo3/doc → target/context/docs
+      - name: Sync dcl-sdk7-docs into target/context/docs
+        run: |
+          mkdir -p target/context/docs
+          rsync -av --delete \
+            --exclude='.git*' \
+            repo3/doc/ target/context/docs/
+
+      # 6) Commit & push back to target‑repo
+      - name: Commit & Push changes
+        working-directory: target
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          # only commit if there are changes
+          git diff --staged --quiet || git commit -m "🤖 sync from sdk7-scene-template & dcl-sdk7-docs"
+          git push origin ${{ env.TARGET_BRANCH }}
