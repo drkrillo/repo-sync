@@ -61,10 +61,10 @@ jobs:
       # 5) Sync repo3/doc → target/context/docs
       - name: Sync dcl-sdk7-docs into target/context/docs
         run: |
-          mkdir -p target/context/docs
+          mkdir -p target/context/sdk7-docs
           rsync -av --delete \
             --exclude='.git*' \
-            repo3/doc/ target/context/docs/
+            repo3/ target/context/docs/
 
       # 6) Commit & push back to target‑repo
       - name: Commit & Push changes
