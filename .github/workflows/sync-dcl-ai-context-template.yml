@@ -58,6 +58,8 @@ jobs:
             --exclude='.git*' \
             --exclude='README.md' \
             --exclude='scene.json' \
+            --exclude='assets/' \
+            --exclude='assets/**' \
             --exclude='src/' \
             --exclude='src/**' \
             --exclude='.cursor.json' \
