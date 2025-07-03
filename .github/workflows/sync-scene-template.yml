@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: '0 0 * * 1'
 
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -18,8 +19,10 @@ jobs:
       - name: Clone dcl-sdk7-docs
         run: git clone --depth 1 https://github.com/drkrillo/dcl-sdk7-docs.git temp-docs
 
-      - name: Clone sdk7-scene-template
-        run: git clone --depth 1 https://github.com/decentraland/sdk7-scene-template.git temp-scene
+      - name: Clone sdk-empty-scene-template
+        run: |
+          git clone --depth 1 https://github.com/decentraland/sdk-empty-scene-template.git temp-scene
+          git --exclude README.md
 
       - name: Clone dcl-ai-context
         run: git clone https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/drkrillo/dcl-ai-context.git temp-ai-context
