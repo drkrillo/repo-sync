@@ -6,4 +6,4 @@ This project contains different GitHub Actions Workflows to run specific scripts
 
 * `SYNC-SDK7`: Updates **dcl-sdk7-docs** repository, a Decentraland's Documentation subset with only SDK7 docs.
 
-* `SYNC-SCENE-TEMPLATE`: Updates **dcl-ai-context** repository, a Scene Template for SDK7 with Context for AI IDEs like Cursor.
+* `SYNC-DCL-AI-CONTEXT-TEMPLATE`: Updates **dcl-ai-context** repository, a Scene Template for SDK7 with Context for AI IDEs like Cursor.
