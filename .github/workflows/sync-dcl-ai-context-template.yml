@@ -1,4 +1,4 @@
-name: Sync to target repo
+name: Sync to dcl-ai-context repo
 on:
   workflow_dispatch:
   schedule:
@@ -57,6 +57,7 @@ jobs:
           rsync -av --delete \
             --exclude='.git*' \
             --exclude='README.md' \
+            --exclude='scene.json' \
             repo2/ target/
 
       # 5) Sync repo3/doc → target/context/docs
