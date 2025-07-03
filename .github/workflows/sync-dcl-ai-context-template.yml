@@ -1,4 +1,4 @@
-name: Sync to target‑repo
+name: Sync to target repo
 on:
   workflow_dispatch:
   schedule:
@@ -6,11 +6,12 @@ on:
   pull_request:
     branches:
       - main
+
 env:
   # adjust paths & branch names as needed
   TARGET_REPO: drkrillo/dcl-ai-context
   TARGET_BRANCH: main
-  REPO2: decentraland/sdk7-scene-template
+  REPO2: decentraland/sdk-empty-scene-template
   REPO2_BRANCH: main
   REPO3: drkrillo/dcl-sdk7-docs
   REPO3_BRANCH: main
