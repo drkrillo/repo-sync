@@ -58,10 +58,14 @@ jobs:
             --exclude='.git*' \
             --exclude='README.md' \
             --exclude='scene.json' \
+            --exclude='src/' \
+            --exclude='src/**' \
             --exclude='.cursor.json' \
+            --exclude='.cursorignore' \
             --exclude='context/rules/**' \
             --exclude='context/rules' \
-            --exclude='.cursorignore' \
+            --exclude='.gitignore' \
+            --exclude='.dclignore' \
             repo2/ target/
 
       # 5) Sync repo3/doc → target/context/docs
